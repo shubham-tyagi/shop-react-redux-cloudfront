@@ -13,6 +13,7 @@ coverage
 dist
 dist-ssr
 *.local
+*.tfstate*
 
 # Editor directories and files
 .vscode/*
