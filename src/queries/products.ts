@@ -8,14 +8,12 @@ export function useAvailableProducts() {
   return useQuery<AvailableProduct[], AxiosError>(
     "available-products",
     async () => {
-      const res = await axios.get<AvailableProduct[]>(
-        "https://shop-api-management.azure-api.net/faproductservice/products",
-        {
-          headers: {
-            "Ocp-Apim-Subscription-Key": "02a2b803bd5e48e1a9c9c38d2c212e94",
-          },
-        }
-      );
+      const res = await axios.get<AvailableProduct[]>(API_PATHS.product, {
+        headers: {
+          "Ocp-Apim-Subscription-Key": import.meta.env
+            .VITE_APIM_SUBSCRIPTION_KEY,
+        },
+      });
       return res.data;
     }
   );
