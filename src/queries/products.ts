@@ -8,9 +8,12 @@ export function useAvailableProducts() {
   return useQuery<AvailableProduct[], AxiosError>(
     "available-products",
     async () => {
-      const res = await axios.get<AvailableProduct[]>(
-        `${API_PATHS.bff}/product/available`
-      );
+      const res = await axios.get<AvailableProduct[]>(API_PATHS.product, {
+        headers: {
+          "Ocp-Apim-Subscription-Key": import.meta.env
+            .VITE_APIM_SUBSCRIPTION_KEY,
+        },
+      });
       return res.data;
     }
   );

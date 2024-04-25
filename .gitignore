@@ -7,12 +7,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+Terraform/.terraform/*
 node_modules
 .serverless
 coverage
 dist
 dist-ssr
 *.local
+*.tfstate*
 
 # Editor directories and files
 .vscode/*
@@ -24,3 +26,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env
