@@ -3,7 +3,8 @@ const API_PATHS = {
     "https://shop-api-management.azure-api.net/faproductservice/products",
   order: "https://.execute-api.eu-west-1.amazonaws.com/dev",
   import: "https://.execute-api.eu-west-1.amazonaws.com/dev",
-  bff: "https://.execute-api.eu-west-1.amazonaws.com/dev",
+  bff: "http://localhost:7071/api/http-post-single-product",
+  // bff: "https://shop-api-management.azure-api.net/faproductservice/products",
   cart: "https://.execute-api.eu-west-1.amazonaws.com/dev",
 };
 
