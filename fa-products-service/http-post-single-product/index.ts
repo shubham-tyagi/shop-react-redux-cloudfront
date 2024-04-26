@@ -4,7 +4,7 @@ import { Product, ProductWithStock, Stock } from '../types';
 
 const key = process.env.COSMOS_KEY;
 const endpoint = process.env.COSMOS_ENDPOINT;
-// const cosmosConnectionString = process.env.COSMOS_CONNECTION_STRING;
+
 const databaseName = `products-db`;
 const containerStocksName = `stocks`;
 const containerProductsName = `products`;
@@ -19,41 +19,67 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  context.log('HTTP trigger function processed a request.');
-  console.log('req.body : ', req.body);
+  try {
+    context.log('HTTP trigger function processed a request.');
 
-  const responseProducts = await containerProducts.items
-    .query('SELECT * from c')
-    .fetchAll();
-  const lastProduct: Product =
-    responseProducts.resources[responseProducts.resources.length - 1];
-  console.log(lastProduct.id.split('sku')[1]);
+    if (
+      !req.body.title ||
+      !req.body.description ||
+      !req.body.price ||
+      !req.body.count
+    ) {
+      throw Error('All Fields Are not present');
+    }
 
-  const uniqueProductId = `sku${Number(lastProduct.id.split('sku')[1]) + 1}`;
+    const responseProducts = await containerProducts.items
+      .query('SELECT * from c')
+      .fetchAll();
+      
+    const lastProduct: Product = responseProducts.resources.length
+      ? responseProducts.resources[responseProducts.resources.length - 1]
+      : {
+          id: 'sku0',
+        };
 
-  const responseSingleProduct = await containerProducts.items.upsert<Product>({
-    id: uniqueProductId,
-    title: req.body.title,
-    description: req.body.description,
-    price: req.body.price,
-  });
+    const uniqueProductId = `sku${Number(lastProduct.id.split('sku')[1]) + 1}`;
 
-  const responseSingleStock = await containerStocks.items.upsert<Stock>({
-    product_id: uniqueProductId,
-    count: req.body.count,
-  });
+    const responseSingleProduct = await containerProducts.items.upsert<Product>(
+      {
+        id: uniqueProductId,
+        title: req.body.title,
+        description: req.body.description,
+        price: req.body.price,
+      }
+    );
 
-  const singleProduct: ProductWithStock = {
-    id: (responseSingleProduct.resource as Product).id,
-    title: (responseSingleProduct.resource as Product).title,
-    description: (responseSingleProduct.resource as Product).description,
-    price: (responseSingleProduct.resource as Product).price,
-    count: (responseSingleStock.resource as Stock).count,
-  };
+    const responseSingleStock = await containerStocks.items.upsert<Stock>({
+      product_id: uniqueProductId,
+      count: req.body.count,
+    });
 
-  context.res = {
-    body: singleProduct,
-  };
+    const singleProduct: ProductWithStock = {
+      id: responseSingleProduct.resource.id,
+      title: responseSingleProduct.resource.title,
+      description: responseSingleProduct.resource.description,
+      price: responseSingleProduct.resource.price,
+      count: responseSingleStock.resource.count,
+    };
+
+    context.res = {
+      body: singleProduct,
+    };
+  } catch (err) {
+    context.res = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      status: 400,
+      body: {
+        error: err.message,
+      },
+      isRaw: true,
+    };
+  }
 };
 
 export default httpTrigger;

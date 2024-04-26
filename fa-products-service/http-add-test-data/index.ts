@@ -1,6 +1,5 @@
 import { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { CosmosClient } from '@azure/cosmos';
-import { count } from 'console';
 
 const key = process.env.COSMOS_KEY;
 const endpoint = process.env.COSMOS_ENDPOINT;
