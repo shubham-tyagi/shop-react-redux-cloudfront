@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 Terraform/.terraform/*
+Terraform/tfplan
 node_modules
 .serverless
 coverage
