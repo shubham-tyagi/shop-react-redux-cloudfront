@@ -15,7 +15,7 @@ const httpTrigger: AzureFunction = async function (
   req: HttpRequest
 ): Promise<void> {
   const { name } = req.query;
-
+  context.log("checking current");
   if (!name) {
     context.res = {
       status: 400,

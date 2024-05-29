@@ -10,13 +10,14 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
+    "@azure/service-bus": "^7.9.4",
     "@azure/storage-blob": "^12.17.0",
     "csv-parse": "^5.5.5"
   },
   "devDependencies": {
     "@azure/functions": "^3.0.0",
-    "azure-functions-core-tools": "^4.x",
     "@types/node": "18.x",
+    "azure-functions-core-tools": "^4.x",
     "typescript": "^4.0.0"
   }
 }
