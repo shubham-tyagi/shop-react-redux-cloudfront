@@ -1,6 +1,7 @@
 import { AzureFunction, Context } from "@azure/functions";
 import { BlobServiceClient } from "@azure/storage-blob";
-import parseCsv from "../utils/parseCsv";
+import { parseProducts } from "../utils/parseCsv";
+import { sendProductToQueue } from "../utils/serviceBus";
 
 const SA_CONNECTION_STRING = process.env.AzureWebJobsStorage;
 
@@ -9,7 +10,14 @@ const blobTrigger: AzureFunction = async function (
   blob: Buffer
 ): Promise<void> {
 
-  const products = await parseCsv(blob);
+  const products = await parseProducts(blob);
+  products.forEach((product) => {
+    try {
+      sendProductToQueue(product);
+    } catch (error) {
+      context.log("Product ", product, " failed to upload with error: ", error);
+    }
+  });
   // Import placeholder
   context.log(products);
 
