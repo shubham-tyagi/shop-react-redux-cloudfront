@@ -155,7 +155,6 @@ resource "azurerm_cosmosdb_sql_database" "products_app" {
   resource_group_name = azurerm_resource_group.product_service_rg.name
 }
 
-
 resource "azurerm_cosmosdb_sql_container" "products" {
   account_name        = azurerm_cosmosdb_account.test_app.name
   database_name       = azurerm_cosmosdb_sql_database.products_app.name
@@ -293,5 +292,30 @@ resource "azurerm_storage_container" "import_parsed" {
   name                  = "parsed"
   storage_account_name  = azurerm_storage_account.import_service_fa.name
   container_access_type = "private"
+}
+
+resource "azurerm_servicebus_namespace" "import_serivce_sb" {
+  name                          = "import-products-servicebus1"
+  location                      = azurerm_resource_group.import_service_rg.location
+  resource_group_name           = azurerm_resource_group.import_service_rg.name
+  sku                           = "Basic"
+  capacity                      = 0 
+  public_network_access_enabled = true 
+  minimum_tls_version           = "1.2"
+  zone_redundant                = false
+}
+
+resource "azurerm_servicebus_queue" "products_queue" {
+  name                                    = "products-queue"
+  namespace_id                            = azurerm_servicebus_namespace.import_serivce_sb.id
+  status                                  = "Active" 
+  enable_partitioning                     = true 
+  lock_duration                           = "PT1M" 
+  max_size_in_megabytes                   = 1024 
+  max_delivery_count                      = 10 
+  requires_duplicate_detection            = false
+  duplicate_detection_history_time_window = "PT10M"
+  requires_session                        = false
+  dead_lettering_on_message_expiration    = false
 }
 
