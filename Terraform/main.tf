@@ -319,3 +319,116 @@ resource "azurerm_servicebus_queue" "products_queue" {
   dead_lettering_on_message_expiration    = false
 }
 
+resource "azurerm_resource_group" "container_app_rg" {
+  location = "northeurope"
+  name     = "rg-container-app-sand-ne-293"
+}
+
+resource "azurerm_container_registry" "container_app" {
+  name                = "crcontainerapp294"
+  resource_group_name = azurerm_resource_group.container_app_rg.name
+  location            = azurerm_resource_group.container_app_rg.location
+  sku                 = "Basic"
+  admin_enabled       = true
+}
+
+resource "azurerm_log_analytics_workspace" "container_app_analytics_workspace" {
+  name                = "lacontainerapp294"
+  location            = azurerm_resource_group.container_app_rg.location
+  resource_group_name = azurerm_resource_group.container_app_rg.name
+}
+
+resource "azurerm_container_app_environment" "container_app_cae" {
+  name                       = "caecontainerapp294"
+  location                   = azurerm_resource_group.container_app_rg.location
+  resource_group_name        = azurerm_resource_group.container_app_rg.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.container_app_analytics_workspace.id
+}
+
+resource "azurerm_container_app" "container_app_ca_docker_acr" {
+  name                         = "acacontainerapp294"
+  container_app_environment_id = azurerm_container_app_environment.container_app_cae.id
+  resource_group_name          = azurerm_resource_group.container_app_rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = azurerm_container_registry.container_app.login_server
+    username             = azurerm_container_registry.container_app.admin_username
+    password_secret_name = "acr-password"
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3000
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+
+  }
+
+  template {
+    container {
+      name   = "acrcontainerapp294"
+      image  = "${azurerm_container_registry.container_app.login_server}/container-app:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "CONTAINER_REGISTRY_NAME"
+        value = "Azure Container Registry"
+      }
+    }
+  }
+
+  secret {
+    name  = "acr-password"
+    value = azurerm_container_registry.container_app.admin_password
+  }
+}
+
+resource "azurerm_container_app" "container_app_ca_docker_hub" {
+  name                         = "acadhcontainerapp294"
+  container_app_environment_id = azurerm_container_app_environment.container_app_cae.id
+  resource_group_name          = azurerm_resource_group.container_app_rg.name
+  revision_mode                = "Single"
+
+  registry {
+    server               = "docker.io"
+    username             = var.docker_hub_username
+    password_secret_name = "docker-io-pass"
+  }
+
+  ingress {
+    allow_insecure_connections = false
+    external_enabled           = true
+    target_port                = 3000
+
+    traffic_weight {
+      percentage      = 100
+      latest_revision = true
+    }
+
+  }
+
+  template {
+    container {
+      name   = "dhcontainerapp294"
+      image  = "docker.io/${var.docker_hub_username}/container-app:v1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      env {
+        name  = "CONTAINER_REGISTRY_NAME"
+        value = "Docker Hub"
+      }
+    }
+  }
+
+  secret {
+    name  = "docker-io-pass"
+    value = var.docker_hub_password
+  }
+}
