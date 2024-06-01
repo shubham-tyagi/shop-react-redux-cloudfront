@@ -9,6 +9,7 @@ lerna-debug.log*
 
 Terraform/.terraform/*
 Terraform/tfplan
+Terraform/variables.tf
 node_modules
 .serverless
 coverage
